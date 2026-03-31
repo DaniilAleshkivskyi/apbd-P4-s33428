@@ -308,7 +308,13 @@ public sealed class LinqExercises
     /// </summary>
     public IEnumerable<string> Challenge03_LecturersAndAverageGradeAcrossTheirCourses()
     {
-        throw NotImplemented(nameof(Challenge03_LecturersAndAverageGradeAcrossTheirCourses));
+        return UniversityData.Lecturers
+            .Join(UniversityData.Courses, l => l.Id, c => c.LecturerId, (l, c) => new { l.FirstName, l.LastName, c.Id })
+            .Join(UniversityData.Enrollments.Where(e => e.FinalGrade != null), temp => temp.Id, e => e.CourseId, (temp, e) => new { Name = $"{temp.FirstName} {temp.LastName}", e.FinalGrade })
+            .GroupBy(x => x.Name)
+            .Select(g => $"{g.Key}: {g.Average(x => x.FinalGrade)}")
+            .ToList();
+        
     }
 
     /// <summary>
@@ -326,7 +332,12 @@ public sealed class LinqExercises
     /// </summary>
     public IEnumerable<string> Challenge04_CitiesAndActiveEnrollmentCounts()
     {
-        throw NotImplemented(nameof(Challenge04_CitiesAndActiveEnrollmentCounts));
+        return UniversityData.Enrollments.Where(e => e.IsActive)
+            .Join(UniversityData.Students, e => e.StudentId, s => s.Id, (e, s) => s.City)
+            .GroupBy(city => city)
+            .Select(g => new { City = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .Select(x => $"{x.City}: {x.Count}").ToList();
     }
 
     private static NotImplementedException NotImplemented(string methodName)
